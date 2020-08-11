@@ -25,10 +25,11 @@ for author_id in ['26631575100']:
                     "Accept"        : 'application/json'})
             if response.ok:
                 full_text = response['full-text-retrieval-response']
+                print("Retrieved full text for {}".format(pub))
             else:
                 print("\n\nCould not retrieve text for {}:\n{}".format(
                     pub, response.text))
         else:
             print("\n\nCould not retrieve text for {} as it is not on SD".format(
-                    pub))
+                pub))
         
