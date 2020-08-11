@@ -2,3 +2,4 @@ config.py
 __pycache__
 *~
 *.swp
+logs/elsapy-20200810.log

@@ -1,0 +1,84 @@
+version: "3.4"
+# Set up common configuration shared between app containers using YAML
+# "extension" (i.e. web, celery, and celery-beat)
+x-flask-base: &flask-base
+  build:
+    context: .
+    dockerfile: ./compose/flask/Dockerfile
+    args:
+      # Match user ID inside the containers to that of the role account that
+      # runs the container
+      APP_USER_ID: $APP_USER_ID
+  volumes:
+    - ./app:/app
+    - ./migrations:/migrations
+    - ./databases:/databases
+    - ./config.py:/site_config.py
+    - ./work:/work
+  environment:
+    TIMEZONE: $TIMEZONE
+services:
+  # Message queue
+  queue:
+    image: redis:alpine
+    expose:
+      - 6379
+    restart: unless-stopped
+  # Flask web app
+  web:
+    # Extend from base app config
+    <<: *flask-base
+    command: >
+      gunicorn
+      --bind 0.0.0.0:8000
+      --workers $NUM_WEB_WORKERS
+      --log-level=info
+      --timeout 86400
+      app:app
+    expose:
+      - 8000
+    depends_on:
+      - queue
+    restart: unless-stopped
+  # Asyncronous tasks
+  tasks:
+    # Extend from base app config
+    <<: *flask-base
+    command: >
+      celery
+      -A app.celery
+      worker
+      --loglevel=info
+    depends_on:
+      - queue
+    restart: unless-stopped
+  # Task scheduler
+  scheduler:
+    # Extend from base app config
+    <<: *flask-base
+    command: >
+      celery
+      -A app.celery
+      beat
+      --loglevel=info
+      --schedule=/work/celery-beat
+      --pidfile=
+    depends_on:
+      - queue
+    restart: unless-stopped
+  # Web front-end/load-balancer/SSL layer (HTTPS) using Nginx
+  load-balancer:
+    build:
+      context: ./compose/nginx
+      args:
+        HOSTNAME: $HOSTNAME
+        TIMEZONE: $TIMEZONE
+    ports:
+     - 80:80
+     - 443:443
+    volumes:
+      - ./certs:/etc/nginx/certs
+      - ./app:/app
+    depends_on:
+      - web
+    restart: unless-stopped

@@ -1,0 +1,9 @@
+version: "3.4"
+services:
+  # A fake mail server to debug automated emails
+  mailslurper:
+    image: marcopas/docker-mailslurper
+    ports:
+      - 2500:2500
+      - 9000:8080
+      - 8085:8085
