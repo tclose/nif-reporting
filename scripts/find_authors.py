@@ -27,7 +27,13 @@ def text_from_pii(pii):
         SCIENCE_DIRECT + pii,
         headers={"X-ELS-APIKey"  : sc.config['Authentication']['APIKey'],
                  "Accept"        : 'application/json'})
-    return response.json()['full-text-retrieval-response']
+    text = None
+    if response.ok:
+        try:
+            text =  response.json()['full-text-retrieval-response']['originalText']
+        except KeyError:
+            pass
+    return text
 
 
 AUTHORS = [
@@ -90,10 +96,15 @@ for pub in publications:
     print('Title: {} | PII: {} | DOI: {}\n'.format(pub.title, pub.pii, pub.doi))
     if pub.pii:
         full_text = text_from_pii(pub.pii)
+        if full_text is None:
+            full_text = "Could not access PII ({}{})".format(
+                    SCIENCE_DIRECT, pub.pii)
     elif pub.doi:
         full_text = text_from_doi(pub.doi)
         if full_text is None:
             full_text = "Could not access DOI ({})".format(pub.doi)
+        else:
+            full_text = 'http://doi.org/' + pub.doi
     else:
         full_text = "Could not find DOI or PII for title!!!"
         
