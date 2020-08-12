@@ -1,18 +1,25 @@
-import requests
 from urllib.parse import unquote as unquote_url
+import requests
 from bs4 import BeautifulSoup
 import pybliometrics.scopus as sc
 
 DOI_RESOLVER = 'http://doi.org/'
+SCIENCE_DIRECT = 'http://api.elsevier.com/content/article/pii/'
+
 
 def text_from_doi(doi):
     html = BeautifulSoup(requests.get(DOI_RESOLVER + doi).text)
     redirect_url = unquote_url(html.find(id='redirectURL').attrs['value'])
     return requests.get(redirect_url).text
 
-def text_from_pii(pii):
 
-    return None
+def text_from_pii(pii):
+    response = requests.get(
+        SCIENCE_DIRECT + pii,
+        headers={"X-ELS-APIKey"  : sc.config['Authentication']['APIKey'],
+                 "Accept"        : 'application/json'})
+    return response['full-text-retrieval-response']
+
 
 AUTHORS = [
     ('Glenda', 'Halliday', None),
@@ -60,7 +67,7 @@ for first, last, initials in AUTHORS:
 
     for author in authors:
         search_str = 'au-id({}) AND pubyear = 2020'.format(
-                author.eid.split('-')[-1])
+            author.eid.split('-')[-1])
         author_pubs = sc.ScopusSearch(search_str).results
         if author_pubs:
             publications += author_pubs
@@ -71,5 +78,12 @@ print('Found {} publications, {} with PIIs, {} with DOIs:\n'.format(
     len([p for p in publications if p.doi])))
 
 for pub in publications:
-    print('Title: {} | PII: {} | DOI: {}'.format(pub.title, pub.pii, pub.doi))
-
+    print('Title: {} | PII: {} | DOI: {}\n'.format(pub.title, pub.pii, pub.doi))
+    if pub.pii:
+        full_text = text_from_pii(pub.pii)
+    elif pub.doi:
+        full_text = text_from_doi(pub.doi)
+    else:
+        full_text "Could not find DOI or PII for title!!!"
+        
+    print(full_text + '\n\n=============================================\n\n')
