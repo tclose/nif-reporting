@@ -1,4 +1,9 @@
-import sys
+"""
+Script to download full text articles linked to facility researchers and
+search for references to NIF-related instruments
+"""
+import os.path
+from argparse import ArgumentParser
 from urllib.parse import unquote as unquote_url
 import requests
 from requests.exceptions import ConnectionError
@@ -59,6 +64,14 @@ VALID_AREAS = [
     'BIOC',
     'PSYC']
 
+parser = ArgumentParser(__doc__)
+parser.add_argument('--full_text_dir', default=None,
+                    help="Directory to dump full text outputs")
+args = parser.parse_args()
+
+if args.full_text_dir:
+    os.makedirs(args.full_text_dir, exist_ok=True)
+
 publications = []
 
 for first, last, initials in AUTHORS:
@@ -93,19 +106,34 @@ print('Found {} publications, {} with PIIs, {} with DOIs:\n'.format(
     len([p for p in publications if p.doi])))
 
 for pub in publications:
-    print('Title: {} | PII: {} | DOI: {}\n'.format(pub.title, pub.pii, pub.doi))
+
+    full_text = None
+    pii_text = None
     if pub.pii:
         full_text = text_from_pii(pub.pii)
         if full_text is None:
             full_text = "Could not access PII ({}{})".format(
                     SCIENCE_DIRECT, pub.pii)
-    elif pub.doi:
+        else:
+            status = 'Text downloaded from PII'
+    if pub.doi:
+        if full_text is not None:
+            pii_text = full_text
         full_text = text_from_doi(pub.doi)
         if full_text is None:
-            full_text = "Could not access DOI ({})".format(pub.doi)
+            status = "Could not access DOI"
         else:
-            full_text = 'http://doi.org/' + pub.doi
-    else:
-        full_text = "Could not find DOI or PII for title!!!"
-        
-    print(str(full_text) + '\n\n=============================================\n\n')
+            status = "Downloaded from DOI"
+    elif not pii_text:
+        status = "Could not find DOI or PII for title!!!"
+
+    if full_text and args.full_text_dir:
+        fname = pub.title[:100].replace('/', '_').replace('\\', '_')
+        with open(os.path.join(args.full_text_dir, fname + '.html'), 'w') as f:
+            f.write(str(full_text))
+        if pii_text:
+            with open(os.path.join(args.full_text_dir, fname + '.txt'), 'w') as f:
+                f.write(pii_text)
+
+    print('Title: {} | PII: {} | DOI: http://dx.doi.org/{} | Status: {}\n'
+          .format(pub.title, pub.pii, pub.doi, status))
