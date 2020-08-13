@@ -78,8 +78,7 @@ class Publication(db.Model):
     openaccess = db.Column(db.Boolean)
     issue_id = db.Column(db.String(100))
     issn = db.Column(db.String(100))
-    nif_funded = db.Column(db.Boolean)
-    nif_likelihood = db.Column(db.Integer)
+    nif_assoc = db.Column(db.Integer)
     abstract = orm.deferred(db.Column(db.Text))
     full_text = orm.deferred(db.Column(db.Text))
 

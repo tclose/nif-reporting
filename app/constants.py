@@ -32,3 +32,16 @@ ACCESS_FULL_TEXT = {
                             "HTML accessible directly using DOI"),
     PDF_ACCESS_FULL_TEXT: ("PDF access", "PDF accessible via Wiley Online API")
 }
+
+NO_NIF_ASSOC = 0
+UNLIKELY_NIF_ASSOC = 10
+POSSIBLE_NIF_ASSOC = 20
+PROBABLE_NIF_ASSOC = 30
+DEFINITE_NIF_ASSOC = 50
+
+NIF_ASSOC = {
+    NO_NIF_ASSOC: ('No association', 'Not associated with NIF'),
+    UNLIKELY_NIF_ASSOC: ('Unlikely', 'Unlikely to be associated with NIF'),
+    POSSIBLE_NIF_ASSOC: ('Possible', 'Possibly associated with NIF'),
+    PROBABLE_NIF_ASSOC: ('Probable', 'Probably associated with NIF'),
+    DEFINITE_NIF_ASSOC: ('Definite', 'Definitely associated with NIF')}
