@@ -3,15 +3,25 @@ Script to download full text articles linked to facility researchers and
 search for references to NIF-related instruments
 """
 import os.path
+import json
+import io
 from argparse import ArgumentParser
 from urllib.parse import unquote as unquote_url
 import requests
 from requests.exceptions import ConnectionError
+from PyPDF2 import PdfFileReader
 from bs4 import BeautifulSoup
 import pybliometrics.scopus as sc
 
 DOI_RESOLVER = 'http://doi.org/'
 SCIENCE_DIRECT = 'http://api.elsevier.com/content/article/pii/'
+CROSSREF = 'https://api.wiley.com/onlinelibrary/tdm/v1/articles/'
+
+crossref_config = os.path.join(os.environ['HOME'], '.crossref', 'config.json')
+
+if os.path.exists(crossref_config):
+    with open(crossref_config) as f:
+        crossref_token = json.load(f)['APIToken']
 
 
 def text_from_doi(doi):
@@ -25,7 +35,21 @@ def text_from_doi(doi):
         redirect_url = unquote_url(redirect_tag.attrs['value'])
         html = BeautifulSoup(requests.get(redirect_url).text,
                              features='lxml')
+    if html.find('title').text.startswith('Attention Required!'):
+        return None
+        # return text_from_crossref(doi)
     return html
+
+def text_from_crossref(doi):
+    response = requests.get(
+        CROSSREF + doi,
+        headers={"CR-Clickthrough-Client-Token"  : crossref_token,
+                 "Accept"        : 'application/pdf'})
+    pdf = PdfFileReader(io.BytesIO(response.content))
+    text = ''
+    for page in pdf.pages:
+        text += page.extractText()
+    return text
 
 def text_from_pii(pii):
     response = requests.get(
@@ -35,7 +59,8 @@ def text_from_pii(pii):
     text = None
     if response.ok:
         try:
-            text =  response.json()['full-text-retrieval-response']['originalText']
+            text = response.json()[
+                'full-text-retrieval-response']['originalText']
         except KeyError:
             pass
     return text
@@ -108,32 +133,31 @@ print('Found {} publications, {} with PIIs, {} with DOIs:\n'.format(
 for pub in publications:
 
     full_text = None
-    pii_text = None
+    full_text_fpath = os.path.join(
+        args.full_text_dir,
+        pub.title[:100].replace('/', '_').replace('\\', '_'))
     if pub.pii:
         full_text = text_from_pii(pub.pii)
         if full_text is None:
-            full_text = "Could not access PII ({}{})".format(
-                    SCIENCE_DIRECT, pub.pii)
+            status = "Could not access PII ({}{})".format(SCIENCE_DIRECT,
+                                                          pub.pii)
         else:
             status = 'Text downloaded from PII'
-    if pub.doi:
-        if full_text is not None:
-            pii_text = full_text
+            fpath += '.txt'
+    elif pub.doi:
         full_text = text_from_doi(pub.doi)
         if full_text is None:
             status = "Could not access DOI"
         else:
             status = "Downloaded from DOI"
-    elif not pii_text:
+            fpath += 'html'
+    else:
         status = "Could not find DOI or PII for title!!!"
 
     if full_text and args.full_text_dir:
-        fname = pub.title[:100].replace('/', '_').replace('\\', '_')
-        with open(os.path.join(args.full_text_dir, fname + '.html'), 'w') as f:
+        with open(fpath, 'w') as f:
             f.write(str(full_text))
-        if pii_text:
-            with open(os.path.join(args.full_text_dir, fname + '.txt'), 'w') as f:
-                f.write(pii_text)
 
-    print('Title: {} | PII: {} | DOI: http://dx.doi.org/{} | Status: {}\n'
-          .format(pub.title, pub.pii, pub.doi, status))
+    print(('Title: {} | PII: http://api.elsevier.com/content/article/pii/{} | '
+           'DOI: http://dx.doi.org/{} | Status: {}\n').format(
+               pub.title, pub.pii, pub.doi, status))

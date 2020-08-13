@@ -1,2 +1,4 @@
 requests>=2.24.0
 pybliometrics>=2.6.3
+PyPDF2>=1.26.0
+beautifulsoup4>=4.9.1
