@@ -90,6 +90,8 @@ class Publication(db.Model):
 
 class Affiliation(db.Model):
 
+    __tablename__ = 'affiliations'
+
     id = db.Column(db.Integer, primary_key=True)
     scopus_id = db.Column(db.String(200), unique=True)
 
