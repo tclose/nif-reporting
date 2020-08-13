@@ -69,7 +69,7 @@ class Publication(db.Model):
     issue_id = db.Column(db.String(100))
     issn = db.Column(db.String(100))
 
-    author_ids = db.relationship(db.Column(db.String(100)))
+    scopus_authors = db.relationship('ScopusAuthor', backref='publications')
 
     def __init__(self, doi, title, eid=None, pii=None, date=None,
                  pubmed_id=None, volume=None, pub_name=None, openaccess=None,
@@ -93,6 +93,8 @@ class Affiliation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scopus_id = db.Column(db.String(200), unique=True)
 
+    scopus_authors = db.relationship('ScopusAuthor', backref='affiliation')
+
 
 class ScopusAuthor(db.Model):
 
@@ -103,15 +105,20 @@ class ScopusAuthor(db.Model):
                               db.ForeignKey(
                                   'researchers.id',
                                   name='fk_scopusauthors_researchers'))
+    publication_id = db.Column(db.Integer,
+                              db.ForeignKey(
+                                  'publications.id',
+                                  name='fk_scopusauthors_publications'))
     scopus_id = db.Column(db.String(200), unique=True)
     affiliation_id = db.Column(db.Integer,
                                db.ForeignKey(
                                    'affiliations.id',
                                    name='fk_scopusauthors_affiliations'))
 
-    affiliation = db.relationship('Affiliation', backref='authors')
 
-    def __init__(self, researcher, scopus_id, affiliation=None):
-        self.researcher = researcher
+    def __init__(self, scopus_id, researcher=None, publication=None, affiliation=None):
         self.scopus_id = scopus_id
+        self.researcher = researcher
+        self.publication = publication
         self.affiliation = affiliation
+
