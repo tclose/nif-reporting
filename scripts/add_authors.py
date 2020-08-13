@@ -55,14 +55,14 @@ with app.app_context():
         if initials:
             authors = [a for a in authors if initials == a.initials]
 
-    researcher = Researcher(
-        first,
-        last,
-        initials=initials,
-        scopus_authors=[
-            ScopusAuthor(
-                a.eid,
-                affiliation=Affiliation(
-                    a.affiliation_id, a.affiliation, a.city, a.country))
-            for a in authors])
-    db.session.commit()
+        researcher = Researcher(
+            first,
+            last,
+            initials=initials,
+            scopus_authors=[
+                ScopusAuthor(
+                    a.eid,
+                    affiliation=Affiliation(
+                        a.affiliation_id, a.affiliation, a.city, a.country))
+                for a in authors])
+        db.session.commit()
