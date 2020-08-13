@@ -15,7 +15,6 @@ app = Flask(__name__, template_folder=templates_dir, static_folder=static_dir)
 app.config.from_object('config')
 
 
-
 # Initialise database model
 db = SQLAlchemy(app)  #, engine_options={'pool_pre_ping': True})
 
