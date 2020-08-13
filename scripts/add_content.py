@@ -71,18 +71,15 @@ def content_from_pii(pii):
             pass
     return text
 
-cache_dir = os.path.join(PKG_DIR, 'publication-content')
-os.makedirs(cache_dir, exist_ok=True)
+content_dir = os.path.join(PKG_DIR, 'publication-content')
+os.makedirs(content_dir, exist_ok=True)
 
 for pub in Publication.query.all():
 
-    cache_path = os.path.join(cache_dir, pub.scopus_id + (
+    content_path = os.path.join(content_dir, pub.scopus_id + (
         '.txt' if pub.pii is not None else '.html'))
 
-    if os.path.exists(cache_path):
-        with open(cache_path) as f:
-            content = f.read()
-    else:
+    if not os.path.exists(content_path):
         if pub.pii:
             content = content_from_pii(pub.pii)
             if content is None:
@@ -98,8 +95,7 @@ for pub in Publication.query.all():
         else:
             pub.access_status = UNKNOWN_ACCESS_CONTENT
 
-    if content:
-        with open(cache_path, 'w') as f:
-            f.write(str(content))
-        pub.content = content
-    db.session.commit()
+        if content:
+            with open(content_path, 'w') as f:
+                f.write(str(content))
+        db.session.commit()
