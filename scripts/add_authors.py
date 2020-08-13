@@ -3,6 +3,7 @@ Script to find Scopus records corresponding to list of authors
 """
 import os.path
 import pybliometrics.scopus as sc
+from sqlalchemy import orm
 from app import app, db
 from app.models import Researcher, ScopusAuthor, Affiliation
 
@@ -58,12 +59,21 @@ with app.app_context():
         researcher = Researcher(
             first,
             last,
-            initials=initials,
-            scopus_authors=[
-                ScopusAuthor(
-                    a.eid,
-                    affiliation=Affiliation(
-                        a.affiliation_id, a.affiliation, a.city, a.country))
-                for a in authors])
+            initials=initials)
         db.session.add(researcher)
+        for author in authors:
+            try:
+                affiliation = Affiliation.query.filter_by(
+                    scopus_id=author.affiliation_id).one()
+            except orm.exc.NoResultFound:
+                affiliation = Affiliation(
+                    author.affiliation_id, author.affiliation, author.city,
+                    author.country)
+            scopus_author = ScopusAuthor(
+                author.eid,
+                researcher=researcher,
+                affiliation=affiliation,
+                areas=author.areas)
+            researcher.scopus_authors.append(scopus_author)
+
         db.session.commit()
