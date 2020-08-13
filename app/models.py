@@ -23,12 +23,12 @@ class Researcher(db.Model):
 
     _scopus_authors = db.relationship('ScopusAuthor', backref='researcher')
 
-    def __init__(self, given_name, surname, initials=None, scopus_authors=None,
+    def __init__(self, given_name, surname, initials=None, scopus_authors=(),
                  orcid=None, title=None):
         self.given_name = given_name
         self.surname = surname
         self.initials = initials
-        self.scopus_authors = scopus_authors
+        self.scopus_authors = list(scopus_authors)
         self.orcid = orcid
         self.title = title
 
