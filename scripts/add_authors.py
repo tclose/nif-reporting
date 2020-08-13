@@ -1,9 +1,10 @@
 """
 Script to find Scopus records corresponding to list of authors
 """
+import os.path
 import pybliometrics.scopus as sc
 from app import app, db
-from app.models import Researcher
+from app.models import Researcher, ScopusAuthor, Affiliation
 
 
 AUTHORS = [
@@ -30,6 +31,10 @@ VALID_AREAS = [
     'PSYC']
 
 with app.app_context():
+
+    if not os.path.exists(app.config['SQLALCHEMY_DATABASE_URI']):
+        db.create_all()
+
     for first, last, initials in AUTHORS:
         all_authors = set(
             a for a in sc.AuthorSearch("authfirst({}) and authlast({})"
@@ -50,9 +55,14 @@ with app.app_context():
         if initials:
             authors = [a for a in authors if initials == a.initials]
 
-    db.session.add(Researcher(
+    researcher = Researcher(
         first,
         last,
         initials=initials,
-        scopus_ids=[a.eid for a in authors]))
+        scopus_authors=[
+            ScopusAuthor(
+                a.eid,
+                affiliation=Affiliation(
+                    a.affiliation_id, a.affiliation, a.city, a.country))
+            for a in authors])
     db.session.commit()

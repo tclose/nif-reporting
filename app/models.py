@@ -1,8 +1,10 @@
 """
-Database models for monitoring researcher who have used the facility and their
+Database models for monitoring researchers who have used the facility and their
 outputs
 """
+from sqlalchemy import orm
 from app import db
+from app.exceptions import NifReportingException
 
 
 class Researcher(db.Model):
@@ -19,14 +21,14 @@ class Researcher(db.Model):
     orcid = db.Column(db.String(200))
     title = db.Column(db.String(20))
 
-    _scopus_ids = db.relationship('ScopusAuthor', backref='researcher')
+    _scopus_authors = db.relationship('ScopusAuthor', backref='researcher')
 
-    def __init__(self, given_name, surname, initials=None, scopus_ids=None,
+    def __init__(self, given_name, surname, initials=None, scopus_authors=None,
                  orcid=None, title=None):
         self.given_name = given_name
         self.surname = surname
         self.initials = initials
-        self.scopus_ids = scopus_ids
+        self.scopus_authors = scopus_authors
         self.orcid = orcid
         self.title = title
 
@@ -39,14 +41,22 @@ class Researcher(db.Model):
 
     @property
     def scopus_ids(self):
-        return [i.scopus_id for i in self._scopus_ids]
+        return [i.scopus_id for i in self.scopus_authors]
 
-    @scopus_ids.setter
-    def scopus_ids(self, ids):
-        scopus_ids = []
-        for id in ids:
-            scopus_ids.append(ScopusAuthor(id, self))
-        self._scopus_ids = scopus_ids
+    @property
+    def scopus_authors(self):
+        return self._scopus_authors
+
+    @scopus_authors.setter
+    def scopus_authors(self, authors):
+        for author in authors:
+            if author.researcher is None:
+                author.researcher = self
+            elif author.researcher is not self:
+                raise NifReportingException(
+                    "Mismatching researcher in scopus authors {}: {}".format(
+                        self, author.researcher))
+        self._scopus_authors = authors
 
     def __str__(self):
         return self.name
@@ -58,22 +68,28 @@ class Publication(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date)
-    doi = db.Column(db.String(200))
-    eid = db.Column(db.String(100))
-    pii = db.Column(db.String(100))
+    doi = db.Column(db.String(200), unique=True)
+    eid = db.Column(db.String(100), unique=True)
+    pii = db.Column(db.String(100), unique=True)
     title = db.Column(db.String(500))
-    pubmed_id = db.Column(db.String(100))
+    pubmed_id = db.Column(db.String(100), unique=True)
     volume = db.Column(db.String(100))
     pub_name = db.Column(db.String(200))
     openaccess = db.Column(db.Boolean)
     issue_id = db.Column(db.String(100))
     issn = db.Column(db.String(100))
+    nif_funded = db.Column(db.Boolean)
+    nif_likelihood = db.Column(db.Integer)
+    abstract = orm.deferred(db.Column(db.Text))
+    full_text = orm.deferred(db.Column(db.Text))
 
-    # scopus_authors = db.relationship('ScopusAuthor', backref='publications')
+    scopus_authors = db.relationship(
+        'ScopusAuthor', secondary='scopusauthor_publication_assoc')
 
     def __init__(self, doi, title, eid=None, pii=None, date=None,
                  pubmed_id=None, volume=None, pub_name=None, openaccess=None,
-                 issue_id=None, issn=None):  #, author_ids=()):    
+                 issue_id=None, issn=None, nif_funded=None,
+                 nif_likelihood=None, abstract=None, full_text=None):  #, author_ids=()):    
         self.date = date
         self.doi = doi
         self.eid = eid
@@ -85,6 +101,10 @@ class Publication(db.Model):
         self.openaccess = openaccess
         self.issue_id = issue_id
         self.issn = issn
+        self.nif_funded = nif_funded
+        self.nif_likelihood = nif_likelihood
+        self.abstract = abstract
+        self.full_text = full_text
         # self.author_ids = author_ids
 
 
@@ -94,8 +114,17 @@ class Affiliation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     scopus_id = db.Column(db.String(200), unique=True)
+    name = db.Column(db.String(500))
+    city = db.Column(db.String(100))
+    country = db.Column(db.String(100))
 
     scopus_authors = db.relationship('ScopusAuthor', backref='affiliation')
+
+    def __init__(self, scopus_id, name, city, country):
+        self.scopus_id = scopus_id
+        self.name = name
+        self.city = city
+        self.country = country
 
 
 class ScopusAuthor(db.Model):
@@ -107,19 +136,35 @@ class ScopusAuthor(db.Model):
                               db.ForeignKey(
                                   'researchers.id',
                                   name='fk_scopusauthors_researchers'))
-    # publication_id = db.Column(db.Integer,
-    #                            db.ForeignKey(
-    #                                'publications.id',
-    #                                name='fk_scopusauthors_publications'))
     scopus_id = db.Column(db.String(200), unique=True)
     affiliation_id = db.Column(db.Integer,
                                db.ForeignKey(
                                    'affiliations.id',
                                    name='fk_scopusauthors_affiliations'))
+    givenname = db.Column(db.String(200))
+    surname = db.Column(db.String(200))
+    areas = db.Column(db.String(250))
 
+    publications = db.relationship(
+        'Publication', secondary='scopusauthor_publication_assoc')
 
-    def __init__(self, scopus_id, researcher=None, affiliation=None):
+    def __init__(self, scopus_id, researcher=None, affiliation=None,
+                 areas=None):
         self.scopus_id = scopus_id
         self.researcher = researcher
         # self.publication = publication
         self.affiliation = affiliation
+        self.areas = areas
+
+
+scopusauthor_publication_assoc = db.Table(
+    'scopusauthor_publication_assoc', db.Model.metadata,
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column(
+        'scopusauthor_id', db.String(20), db.ForeignKey(
+            'scopusauthors.id',
+            name='fk_scopusauthorpublicationassoc_scopusauthor')),
+    db.Column(
+        'publication_id', db.Integer, db.ForeignKey(
+            'publications.id',
+            name='fk_scopusauthorpublicationassoc_publication')))
