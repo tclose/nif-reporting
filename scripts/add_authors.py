@@ -71,6 +71,8 @@ with app.app_context():
                     author.country)
             scopus_author = ScopusAuthor(
                 author.eid,
+                givenname=author.givenname,
+                surname=author.surname,
                 researcher=researcher,
                 affiliation=affiliation,
                 areas=author.areas)
