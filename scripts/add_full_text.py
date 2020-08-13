@@ -11,7 +11,7 @@ from requests.exceptions import ConnectionError
 from PyPDF2 import PdfFileReader
 from bs4 import BeautifulSoup
 import pybliometrics.scopus as sc
-from app import PKG_DIRECTORY
+from app import PKG_DIRECTORY, db
 from app.models import Publication
 from app.constants import (
     CANT_ACCESS_CONTENT, PLAIN_TEXT_ACCESS_CONTENT, HTML_ACCESS_CONTENT,
@@ -78,9 +78,12 @@ for pub in Publication.query.all():
     cache_path = os.path.join(cache_dir, pub.scopus_id + (
         '.txt' if pub.pii is not None else '.html'))
 
-    if not os.path.exists(cache_path):
+    if os.path.exists(cache_path):
+        with open(cache_path) as f:
+            content = f.read()
+    else:
         if pub.pii:
-            content = content_from_pii(pub.pii)            
+            content = content_from_pii(pub.pii)
             if content is None:
                 pub.access_status = CANT_ACCESS_CONTENT
             else:
@@ -94,7 +97,8 @@ for pub in Publication.query.all():
         else:
             pub.access_status = UNKNOWN_ACCESS_CONTENT
 
-        if content:
-            with open(cache_path, 'w') as f:
-                f.write(str(content))
-            pub.content = content
+    if content:
+        with open(cache_path, 'w') as f:
+            f.write(str(content))
+        pub.content = content
+    db.session.commit()

@@ -48,4 +48,3 @@ with app.app_context():
                                 publication.scopus_authors.append(scopus_author)
                         db.session.add(publication)
                         db.session.commit()
-
