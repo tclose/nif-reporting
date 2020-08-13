@@ -149,12 +149,14 @@ class ScopusAuthor(db.Model):
         'Publication', secondary='scopusauthor_publication_assoc')
 
     def __init__(self, scopus_id, researcher=None, affiliation=None,
-                 areas=None):
+                 areas=None, givenname=None, surname=None):
         self.scopus_id = scopus_id
         self.researcher = researcher
         # self.publication = publication
         self.affiliation = affiliation
         self.areas = areas
+        self.givenname = givenname
+        self.surname = surname
 
 
 scopusauthor_publication_assoc = db.Table(
