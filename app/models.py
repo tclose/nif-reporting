@@ -72,7 +72,7 @@ class Publication(db.Model):
     eid = db.Column(db.String(100), unique=True)
     pii = db.Column(db.String(100), unique=True)
     title = db.Column(db.String(500))
-    pubmed_id = db.Column(db.String(100), unique=True)
+    pubmed_id = db.Column(db.String(100))
     volume = db.Column(db.String(100))
     pub_name = db.Column(db.String(200))
     openaccess = db.Column(db.Boolean)

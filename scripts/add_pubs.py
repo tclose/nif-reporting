@@ -1,3 +1,4 @@
+from datetime import datetime
 from argparse import ArgumentParser
 import pybliometrics.scopus as sc
 from app import app, db
@@ -9,6 +10,7 @@ parser.add_argument('--year', type=int, default=None,
                     help="The year to search for")
 args = parser.parse_args()
 
+DATE_FORMAT = '%Y-%m-%d'
 
 with app.app_context():
 
@@ -16,12 +18,13 @@ with app.app_context():
 
         for author in researcher.scopus_authors:
             search_str = 'au-id({}) AND pubyear = 2020'.format(
-                author.eid.split('-')[-1])
+                author.scopus_id.split('-')[-1])
             author_pubs = sc.ScopusSearch(search_str).results
             if author_pubs:
                 for pub in author_pubs:
                     db.session.add(Publication(
-                        date=pub.coverDate,
+                        date=datetime.strptime(
+                            pub.coverDate, DATE_FORMAT).date(),
                         doi=pub.doi,
                         eid=pub.eid,
                         pii=pub.pii,
@@ -29,7 +32,7 @@ with app.app_context():
                         pubmed_id=pub.pubmed_id,
                         volume=pub.volume,
                         pub_name=pub.publicationName,
-                        openaccess=pub.openaccess,
-                        issue_id=pub.issue_id,
-                        issn=pub.issn,
-                        abstract=pub.abstract))
+                        openaccess=(pub.openaccess == '1'),
+                        issue_id=pub.issueIdentifier,
+                        issn=pub.issn))
+                    db.session.commit()
