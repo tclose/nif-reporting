@@ -79,16 +79,17 @@ class Publication(db.Model):
     issue_id = db.Column(db.String(100))
     issn = db.Column(db.String(100))
     nif_assoc = db.Column(db.Integer)
+    access_status = db.Column(db.Integer)
     abstract = orm.deferred(db.Column(db.Text))
-    full_text = orm.deferred(db.Column(db.Text))
+    content = orm.deferred(db.Column(db.Text))
 
     scopus_authors = db.relationship(
         'ScopusAuthor', secondary='scopusauthor_publication_assoc')
 
     def __init__(self, doi, title, eid=None, pii=None, date=None,
                  pubmed_id=None, volume=None, pub_name=None, openaccess=None,
-                 issue_id=None, issn=None, nif_funded=None,
-                 nif_likelihood=None, abstract=None, full_text=None):  #, author_ids=()):    
+                 issue_id=None, issn=None, nif_funded=None, access_status=None,
+                 nif_likelihood=None, abstract=None, content=None):  #, author_ids=()):    
         self.date = date
         self.doi = doi
         self.eid = eid
@@ -103,7 +104,8 @@ class Publication(db.Model):
         self.nif_funded = nif_funded
         self.nif_likelihood = nif_likelihood
         self.abstract = abstract
-        self.full_text = full_text
+        self.content = content
+        self.access_status = access_status
         # self.author_ids = author_ids
 
 

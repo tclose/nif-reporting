@@ -19,19 +19,24 @@ USER_STATUS = {
     NEW_USER_STATUS: ('New', "hasn't been enabled yet"),
 }
 
-CANT_ACCESS_FULL_TEXT = 0
-PII_ACCESS_FULL_TEXT = 1
-HTML_ACCESS_FULL_TEXT = 2
-PDF_ACCESS_FULL_TEXT = 3
+UNKNOWN_ACCESS_CONTENT = -1
+CANT_ACCESS_CONTENT = 0
+PLAIN_TEXT_ACCESS_CONTENT = 1
+HTML_ACCESS_CONTENT = 2
+PDF_ACCESS_CONTENT = 3
 
 
-ACCESS_FULL_TEXT = {
-    CANT_ACCESS_FULL_TEXT: ("Can't access", "No automated access to full text"),
-    PII_ACCESS_FULL_TEXT: ("PII access", "Accessible via ScienceDirect API"),
-    HTML_ACCESS_FULL_TEXT: ("HTML access",
-                            "HTML accessible directly using DOI"),
-    PDF_ACCESS_FULL_TEXT: ("PDF access", "PDF accessible via Wiley Online API")
+ACCESS_CONTENT = {
+    UNKNOWN_ACCESS_CONTENT: ("Unknown access", "Unknown location of content"),
+    CANT_ACCESS_CONTENT: ("Can't access",
+                          "No automated/authorised access to conent"),
+    PLAIN_TEXT_ACCESS_CONTENT: ("Plain text access",
+                                "Plain text accessible via ScienceDirect API"),
+    HTML_ACCESS_CONTENT: ("HTML access",
+                          "HTML directly accessible directly using DOI"),
+    PDF_ACCESS_CONTENT: ("PDF access", "PDF accessible via Wiley Online API")
 }
+
 
 NO_NIF_ASSOC = 0
 UNLIKELY_NIF_ASSOC = 10

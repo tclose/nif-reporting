@@ -27,9 +27,9 @@ with app.app_context():
                         pii=pub.pii,
                         title=pub.title,
                         pubmed_id=pub.pubmed_id,
+                        issue_id=pub.issueIdentifier,
                         volume=pub.volume,
                         pub_name=pub.publicationName,
                         openaccess=pub.openaccess,
-                        issue_id=pub.issue_id,
                         issn=pub.issn,
                         abstract=pub.abstract))

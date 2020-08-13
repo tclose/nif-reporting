@@ -24,7 +24,7 @@ if os.path.exists(crossref_config):
         crossref_token = json.load(f)['APIToken']
 
 
-def text_from_doi(doi):
+def content_from_doi(doi):
     try:
         response = requests.get(DOI_RESOLVER + doi)
     except ConnectionError:
@@ -37,10 +37,10 @@ def text_from_doi(doi):
                              features='lxml')
     if html.find('title').text.startswith('Attention Required!'):
         return None
-        # return text_from_crossref(doi)
+        # return content_from_crossref(doi)
     return html
 
-def text_from_crossref(doi):
+def content_from_crossref(doi):
     response = requests.get(
         CROSSREF + doi,
         headers={"CR-Clickthrough-Client-Token"  : crossref_token,
@@ -51,7 +51,7 @@ def text_from_crossref(doi):
         text += page.extractText()
     return text
 
-def text_from_pii(pii):
+def content_from_pii(pii):
     response = requests.get(
         SCIENCE_DIRECT + pii,
         headers={"X-ELS-APIKey"  : sc.config['Authentication']['APIKey'],
@@ -90,12 +90,12 @@ VALID_AREAS = [
     'PSYC']
 
 parser = ArgumentParser(__doc__)
-parser.add_argument('--full_text_cache', default=None,
+parser.add_argument('--content_cache', default=None,
                     help="Directory to dump full text outputs")
 args = parser.parse_args()
 
-if args.full_text_cache:
-    os.makedirs(args.full_text_cache, exist_ok=True)
+if args.content_cache:
+    os.makedirs(args.content_cache, exist_ok=True)
 
 publications = []
 
@@ -130,33 +130,33 @@ print('Found {} publications, {} with PIIs, {} with DOIs:\n'.format(
     len([p for p in publications if p.pii]),
     len([p for p in publications if p.doi])))
 
-if args.full_text_cache:
-    fnames = os.listdir(args.full_text_cache)
+if args.content_cache:
+    fnames = os.listdir(args.content_cache)
     cache = {n.split(':')[0]: n for n in fnames}
 else:
     cache = None
 
 for pub in publications:
 
-    full_text = None
+    content = None
     try:
-        fpath = os.path.join(args.full_text_cache, cache[pub.eid])
+        fpath = os.path.join(args.content_cache, cache[pub.eid])
     except KeyError:
         fpath = os.path.join(
-            args.full_text_dir,
+            args.content_dir,
             pub.eid + ':'
             + pub.title[:80].replace('/', '_').replace('\\', '_'))
         if pub.pii:
-            full_text = text_from_pii(pub.pii)
-            if full_text is None:
+            content = content_from_pii(pub.pii)
+            if content is None:
                 status = "Could not access PII ({}{})".format(SCIENCE_DIRECT,
                                                               pub.pii)
             else:
                 status = 'Text downloaded from PII'
                 fpath += '.txt'
         elif pub.doi:
-            full_text = text_from_doi(pub.doi)
-            if full_text is None:
+            content = content_from_doi(pub.doi)
+            if content is None:
                 status = "Could not access DOI"
             else:
                 status = "Downloaded from DOI"
@@ -164,17 +164,16 @@ for pub in publications:
         else:
             status = "Could not find DOI or PII for title!!!"
 
-        if full_text and args.full_text_dir:
+        if content and args.content_dir:
             with open(fpath, 'w') as f:
-                f.write(str(full_text))
+                f.write(str(content))
         print(('ID: {} | Title: {} | '
                'PII: http://api.elsevier.com/content/article/pii/{} | '
                'DOI: http://dx.doi.org/{} | Status: {}\n').format(
                    pub.eid, pub.title, pub.pii, pub.doi, status))
-        pub.
     else:
         with open(fpath) as f:
-            full_text = f.read()
+            content = f.read()
         print('ID: {} | Title: {} | Status: from cache'
               .format(pub.eid, pub.title))
 
