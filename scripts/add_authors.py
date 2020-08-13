@@ -65,4 +65,5 @@ with app.app_context():
                     affiliation=Affiliation(
                         a.affiliation_id, a.affiliation, a.city, a.country))
                 for a in authors])
+        db.session.add(researcher)
         db.session.commit()
