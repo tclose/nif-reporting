@@ -6,6 +6,7 @@ from flask_mail import Mail
 from flask_migrate import Migrate
 from celery import Celery
 
+PKG_DIR = op.join(op.dirname(__file__), '..')
 
 # Set up the Flask app
 templates_dir = op.join(op.dirname(__file__), 'templates')

@@ -5,3 +5,4 @@ __pycache__
 logs/elsapy-20200810.log
 output.txt
 databases/*
+publication-content/*

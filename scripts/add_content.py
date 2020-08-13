@@ -11,7 +11,7 @@ from requests.exceptions import ConnectionError
 from PyPDF2 import PdfFileReader
 from bs4 import BeautifulSoup
 import pybliometrics.scopus as sc
-from app import PKG_DIRECTORY, db
+from app import PKG_DIR, db
 from app.models import Publication
 from app.constants import (
     CANT_ACCESS_CONTENT, PLAIN_TEXT_ACCESS_CONTENT, HTML_ACCESS_CONTENT,
@@ -71,7 +71,8 @@ def content_from_pii(pii):
             pass
     return text
 
-cache_dir = os.path.join(PKG_DIRECTORY, 'full-texts')
+cache_dir = os.path.join(PKG_DIR, 'publication-content')
+os.makedirs(cache_dir, exist_ok=True)
 
 for pub in Publication.query.all():
 

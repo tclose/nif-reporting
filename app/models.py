@@ -68,8 +68,8 @@ class Publication(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date)
+    scopus_id = db.Column(db.String(100), unique=True)
     doi = db.Column(db.String(200), unique=True)
-    eid = db.Column(db.String(100), unique=True)
     pii = db.Column(db.String(100), unique=True)
     title = db.Column(db.String(500))
     pubmed_id = db.Column(db.String(100), unique=True)
@@ -86,13 +86,13 @@ class Publication(db.Model):
     scopus_authors = db.relationship(
         'ScopusAuthor', secondary='scopusauthor_publication_assoc')
 
-    def __init__(self, doi, title, eid=None, pii=None, date=None,
+    def __init__(self, doi, title, scopus_id=None, pii=None, date=None,
                  pubmed_id=None, volume=None, pub_name=None, openaccess=None,
                  issue_id=None, issn=None, nif_funded=None, access_status=None,
                  nif_likelihood=None, abstract=None, content=None):  #, author_ids=()):    
         self.date = date
         self.doi = doi
-        self.eid = eid
+        self.scopus_id = scopus_id
         self.pii = pii
         self.title = title
         self.pubmed_id = pubmed_id

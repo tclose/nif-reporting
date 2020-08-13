@@ -22,13 +22,14 @@ with app.app_context():
             author_pubs = sc.ScopusSearch(search_str).results
             if author_pubs:
                 for pub in author_pubs:
-                    publication = Publication.query.filter_by(eid=pub.eid).one_or_none()
+                    scopus_id = pub.eid.split('-')[-1]
+                    publication = Publication.query.filter_by(scopus_id=scopus_id).one_or_none()
                     if publication is None:
                         publication = Publication(
                             date=datetime.strptime(
                                 pub.coverDate, DATE_FORMAT).date(),
                             doi=pub.doi,
-                            eid=pub.eid,
+                            scopus_id=scopus_id,
                             pii=pub.pii,
                             title=pub.title,
                             pubmed_id=pub.pubmed_id,
