@@ -90,12 +90,12 @@ VALID_AREAS = [
     'PSYC']
 
 parser = ArgumentParser(__doc__)
-parser.add_argument('--full_text_dir', default=None,
+parser.add_argument('--full_text_cache', default=None,
                     help="Directory to dump full text outputs")
 args = parser.parse_args()
 
-if args.full_text_dir:
-    os.makedirs(args.full_text_dir, exist_ok=True)
+if args.full_text_cache:
+    os.makedirs(args.full_text_cache, exist_ok=True)
 
 publications = []
 
@@ -130,34 +130,51 @@ print('Found {} publications, {} with PIIs, {} with DOIs:\n'.format(
     len([p for p in publications if p.pii]),
     len([p for p in publications if p.doi])))
 
+if args.full_text_cache:
+    fnames = os.listdir(args.full_text_cache)
+    cache = {n.split(':')[0]: n for n in fnames}
+else:
+    cache = None
+
 for pub in publications:
 
     full_text = None
-    full_text_fpath = os.path.join(
-        args.full_text_dir,
-        pub.title[:100].replace('/', '_').replace('\\', '_'))
-    if pub.pii:
-        full_text = text_from_pii(pub.pii)
-        if full_text is None:
-            status = "Could not access PII ({}{})".format(SCIENCE_DIRECT,
-                                                          pub.pii)
+    try:
+        fpath = os.path.join(args.full_text_cache, cache[pub.eid])
+    except KeyError:
+        fpath = os.path.join(
+            args.full_text_dir,
+            pub.eid + ':'
+            + pub.title[:80].replace('/', '_').replace('\\', '_'))
+        if pub.pii:
+            full_text = text_from_pii(pub.pii)
+            if full_text is None:
+                status = "Could not access PII ({}{})".format(SCIENCE_DIRECT,
+                                                              pub.pii)
+            else:
+                status = 'Text downloaded from PII'
+                fpath += '.txt'
+        elif pub.doi:
+            full_text = text_from_doi(pub.doi)
+            if full_text is None:
+                status = "Could not access DOI"
+            else:
+                status = "Downloaded from DOI"
+                fpath += 'html'
         else:
-            status = 'Text downloaded from PII'
-            fpath += '.txt'
-    elif pub.doi:
-        full_text = text_from_doi(pub.doi)
-        if full_text is None:
-            status = "Could not access DOI"
-        else:
-            status = "Downloaded from DOI"
-            fpath += 'html'
+            status = "Could not find DOI or PII for title!!!"
+
+        if full_text and args.full_text_dir:
+            with open(fpath, 'w') as f:
+                f.write(str(full_text))
+        print(('ID: {} | Title: {} | '
+               'PII: http://api.elsevier.com/content/article/pii/{} | '
+               'DOI: http://dx.doi.org/{} | Status: {}\n').format(
+                   pub.eid, pub.title, pub.pii, pub.doi, status))
+        pub.
     else:
-        status = "Could not find DOI or PII for title!!!"
+        with open(fpath) as f:
+            full_text = f.read()
+        print('ID: {} | Title: {} | Status: from cache'
+              .format(pub.eid, pub.title))
 
-    if full_text and args.full_text_dir:
-        with open(fpath, 'w') as f:
-            f.write(str(full_text))
-
-    print(('Title: {} | PII: http://api.elsevier.com/content/article/pii/{} | '
-           'DOI: http://dx.doi.org/{} | Status: {}\n').format(
-               pub.title, pub.pii, pub.doi, status))

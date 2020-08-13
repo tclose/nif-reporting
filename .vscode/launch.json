@@ -5,10 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: add_authors",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/add_authors.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Academic Outputs",
             "type": "python",
             "request": "launch",
-            "program": "academic_outputs.py",
+            "program": "scripts/academic_outputs.py",
             "console": "integratedTerminal"
         }
     ]

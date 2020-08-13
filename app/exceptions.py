@@ -1,0 +1,2 @@
+class NifReportingException(Exception):
+    pass
