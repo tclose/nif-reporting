@@ -114,7 +114,7 @@ class Affiliation(db.Model):
     __tablename__ = 'affiliations'
 
     id = db.Column(db.Integer, primary_key=True)
-    scopus_id = db.Column(db.String(200), unique=True)
+    scopus_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(500))
     city = db.Column(db.String(100))
     country = db.Column(db.String(100))
@@ -133,11 +133,11 @@ class ScopusAuthor(db.Model):
     __tablename__ = 'scopusauthors'
 
     id = db.Column(db.Integer, primary_key=True)
+    scopus_id = db.Column(db.Integer, unique=True)
     researcher_id = db.Column(db.Integer,
                               db.ForeignKey(
                                   'researchers.id',
                                   name='fk_scopusauthors_researchers'))
-    scopus_id = db.Column(db.String(200), unique=True)
     affiliation_id = db.Column(db.Integer,
                                db.ForeignKey(
                                    'affiliations.id',
@@ -158,6 +158,10 @@ class ScopusAuthor(db.Model):
         self.areas = areas
         self.givenname = givenname
         self.surname = surname
+
+    @property
+    def name(self):
+        return '{} {}'.format(self.givenname, self.surname)
 
 
 scopusauthor_publication_assoc = db.Table(

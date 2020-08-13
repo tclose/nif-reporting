@@ -70,7 +70,7 @@ with app.app_context():
                     author.affiliation_id, author.affiliation, author.city,
                     author.country)
             scopus_author = ScopusAuthor(
-                author.eid,
+                int(author.eid.split('-')[-1]),
                 givenname=author.givenname,
                 surname=author.surname,
                 researcher=researcher,
