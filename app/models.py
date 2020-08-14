@@ -5,6 +5,7 @@ outputs
 import os.path
 from sqlalchemy import orm
 from app import db, PKG_DIR
+from app.constants import NIF_ASSOC
 from app.exceptions import NifReportingException
 
 
@@ -92,7 +93,7 @@ class Publication(db.Model):
     def __init__(self, doi, title, scopus_id=None, pii=None, date=None,
                  pubmed_id=None, volume=None, pub_name=None, openaccess=None,
                  issue_id=None, issn=None, nif_funded=None, access_status=None,
-                 nif_likelihood=None, abstract=None, content=None):  #, author_ids=()):    
+                 nif_assoc=None, abstract=None, content=None):  #, author_ids=()):    
         self.date = date
         self.doi = doi
         self.scopus_id = scopus_id
@@ -105,7 +106,7 @@ class Publication(db.Model):
         self.issue_id = issue_id
         self.issn = issn
         self.nif_funded = nif_funded
-        self.nif_likelihood = nif_likelihood
+        self.nif_assoc = nif_assoc
         self.abstract = abstract
         self.content = content
         self.access_status = access_status
@@ -113,7 +114,7 @@ class Publication(db.Model):
 
     @property
     def content(self):
-        if self.has_content:
+        if not self.has_content:
             return None
         with open(self.content_path) as f:
             content = f.read()
@@ -134,6 +135,17 @@ class Publication(db.Model):
     @property
     def has_content(self):
         return os.path.exists(self.content_path)
+
+    @property
+    def nif_assoc_str(self):
+        try:
+            return NIF_ASSOC[self.nif_assoc][0]
+        except KeyError:
+            return "Not determined"
+
+    @property
+    def researchers_involved(self):
+        return (a.researcher for a in self.scopus_authors)
 
 
 class Affiliation(db.Model):

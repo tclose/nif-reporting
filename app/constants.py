@@ -42,11 +42,15 @@ NO_NIF_ASSOC = 0
 UNLIKELY_NIF_ASSOC = 10
 POSSIBLE_NIF_ASSOC = 20
 PROBABLE_NIF_ASSOC = 30
+HIGHLY_PROBABLE_NIF_ASSOC = 40
 DEFINITE_NIF_ASSOC = 50
 
 NIF_ASSOC = {
-    NO_NIF_ASSOC: ('No association', 'Not associated with NIF'),
+    NO_NIF_ASSOC: ('Not', 'Not associated with NIF'),
     UNLIKELY_NIF_ASSOC: ('Unlikely', 'Unlikely to be associated with NIF'),
     POSSIBLE_NIF_ASSOC: ('Possible', 'Possibly associated with NIF'),
     PROBABLE_NIF_ASSOC: ('Probable', 'Probably associated with NIF'),
+    HIGHLY_PROBABLE_NIF_ASSOC: (
+        'Highly probable',
+        'Higly probable to be associated with NIF. Manually checked but '),
     DEFINITE_NIF_ASSOC: ('Definite', 'Definitely associated with NIF')}

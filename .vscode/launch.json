@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Guess NIF access",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/guess_nif_access.py",
+            "console": "integratedTerminal",
+            "args": [
+                "report.csv",
+                "--probable_log", "probable.txt",
+                "--possible_log", "possible.txt",
+            ]
+        },
+        {
             "name": "Python: add_authors",
             "type": "python",
             "request": "launch",
