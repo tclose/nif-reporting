@@ -5,15 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Export NRT CSV",
+            "type": "python",
+            "request": "launch",
+            "program": "scripts/export_csv.py",
+            "console": "integratedTerminal",
+            "args": [
+                "outputs/nrt-upload.csv"
+            ]
+        },
+        {
             "name": "Python: Guess NIF access",
             "type": "python",
             "request": "launch",
             "program": "scripts/guess_nif_access.py",
             "console": "integratedTerminal",
             "args": [
-                "report.csv",
-                "--probable_log", "probable.txt",
-                "--possible_log", "possible.txt",
+                "outputs/confirm-nif-assoc.csv",
+                "--probable_log",
+                "outputs/probable.txt",
+                "--possible_log",
+                "outputs/possible.txt",
             ]
         },
         {

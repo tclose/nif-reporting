@@ -1,0 +1,39 @@
+Subject or Title: <title>
+Outputs Owner: -
+Outputs Owner ID: - 
+Created Time: -
+Modified Time: -
+Last Activity Time: -
+Tag: -
+Fellow Named Author: 'FALSE'
+Output Date: <date>
+Origin: 'Research Community'
+Output Type: 'Publication'
+Node Contact: 'Prof. Fernando Calamante'
+DOI or Link: <doi>
+Advice Provided: -
+Government Priority: - 
+Output summary: - 
+IP or Commercialisation Activity: -
+Granting Body: -
+Link for further info: -
+Duration (years): -
+Funding Amount: -
+Announcement Link: - 
+File Number: -
+Link: -
+Audience: -
+Outcomes (including potential): -
+Status: -
+Asset Type: -
+Asset Type, if Other: 
+Data Asset Link: 
+Is NIF Acknowledged?: 'No'
+If not, why: 'Offsite instrument'
+Publication: <journal>
+Link to Software: -
+Access Assigned: -
+Software Description: -
+Advice Origin: -
+Output type, if Other: -
+Has Associated Project: No
