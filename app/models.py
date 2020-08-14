@@ -2,8 +2,9 @@
 Database models for monitoring researchers who have used the facility and their
 outputs
 """
+import os.path
 from sqlalchemy import orm
-from app import db
+from app import db, PKG_DIR
 from app.exceptions import NifReportingException
 
 
@@ -66,6 +67,8 @@ class Publication(db.Model):
 
     __tablename__ = 'publications'
 
+    CONTENT_DIR = os.path.join(PKG_DIR, 'publication-content')
+
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date)
     scopus_id = db.Column(db.String(100), unique=True)
@@ -81,7 +84,7 @@ class Publication(db.Model):
     nif_assoc = db.Column(db.Integer)
     access_status = db.Column(db.Integer)
     abstract = orm.deferred(db.Column(db.Text))
-    content = orm.deferred(db.Column(db.Text))
+    #content = orm.deferred(db.Column(db.Text))
 
     scopus_authors = db.relationship(
         'ScopusAuthor', secondary='scopusauthor_publication_assoc')
@@ -107,6 +110,30 @@ class Publication(db.Model):
         self.content = content
         self.access_status = access_status
         # self.author_ids = author_ids
+
+    @property
+    def content(self):
+        if self.has_content:
+            return None
+        with open(self.content_path) as f:
+            content = f.read()
+        return content
+
+    @content.setter
+    def content(self, content):
+        if content is not None:
+            with open(self.content_path, 'w') as f:
+                f.write(str(content))
+
+    @property
+    def content_path(self):
+        path = os.path.join(self.CONTENT_DIR, str(self.scopus_id))
+        path += ('.txt' if self.pii else '.html')
+        return path
+
+    @property
+    def has_content(self):
+        return os.path.exists(self.content_path)
 
 
 class Affiliation(db.Model):
