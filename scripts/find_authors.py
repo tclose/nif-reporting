@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Script to download full text articles linked to facility researchers and
 search for references to NIF-related instruments

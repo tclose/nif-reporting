@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from datetime import datetime
 from argparse import ArgumentParser
 from sqlalchemy import orm

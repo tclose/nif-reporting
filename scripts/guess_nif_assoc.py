@@ -6,6 +6,7 @@ import re
 import csv
 import logging
 from argparse import ArgumentParser
+from datetime import datetime
 from app import app, db
 from app.models import Publication
 from app.constants import (
@@ -22,6 +23,12 @@ CSV_HEADERS = ['NIF Supported (Y/N)', 'Likelihood', 'Scopus ID', 'DOI',
 
 parser = ArgumentParser(__doc__)
 parser.add_argument('output_csv', type=str, help="Path to output CSV")
+parser.add_argument(
+    'start_date', type=str,
+    help="The start date to list publications from in d/m/y format")
+parser.add_argument(
+    'end_date', type=str,
+    help="The end date to list publications until in d/m/y format")
 parser.add_argument('--possible_log', type=str, default=None,
                     help="Location of log file to output possible matches")
 parser.add_argument('--probable_log', type=str, default=None,
@@ -33,6 +40,9 @@ possible_logger = logging.getLogger('nrt_possible')
 other_logger = logging.getLogger('nrt_other')
 
 formatter = logging.Formatter('%(message)s')
+
+start_date = datetime.strptime(args.start_date, '%d/%m/%y')
+end_date = datetime.strptime(args.end_date, '%d/%m/%y')
 
 if args.possible_log:
     os.remove(args.possible_log)
@@ -54,7 +64,12 @@ with app.app_context(), open(args.output_csv, 'w') as csv_f:
 
     csv_writer.writeheader()
 
-    for pub in Publication.query.order_by(Publication.scopus_id).all():
+    query = (Publication.query
+             .filter(
+                Publication.date >= start_date,
+                Publication.date <= end_date))
+
+    for pub in query.all():
         if pub.has_content:
             mri_matches = mri_re.findall(pub.content)
             if mri_matches:
@@ -89,9 +104,9 @@ with app.app_context(), open(args.output_csv, 'w') as csv_f:
                 pub.title)
         db.session.commit()
 
-    for pub in Publication.query.order_by(
+    for pub in query.order_by(
             Publication.nif_assoc.desc(),
-            Publication.scopus_id):
+            Publication.date):
         csv_writer.writerow({
             'Scopus ID': pub.scopus_id,
             'DOI': ('https://dx.doi.org/' + pub.doi if pub.doi else ''),

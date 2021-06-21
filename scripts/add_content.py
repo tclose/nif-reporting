@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Script to download full text articles for publications so they can be searced
 for key terms

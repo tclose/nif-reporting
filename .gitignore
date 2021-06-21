@@ -8,3 +8,6 @@ databases/*
 publication-content/*
 outputs/*
 ~*
+work/celery-beat.db
+.DS_Store
+/.vscode

@@ -14,6 +14,7 @@ RUN echo "deb http://http.debian.net/debian/ buster main contrib non-free" > /et
     cmake \
     curl \
     gcc \
+    ruby-dev \
     fontconfig \
     libc-dev \
     libffi-dev \
@@ -52,7 +53,7 @@ RUN ln -snf /usr/share/zoneinfo/$TIMEZONE /etc/localtime && \
     echo $TIMEZONE > /etc/timezone
 
 # Add config.py to container to configure the app
-COPY ./compose/app/config.py config.py
+COPY ./compose/flask/config.py config.py
 
 # Set up 'app' user and add to sudoers
 ARG APP_USER_ID

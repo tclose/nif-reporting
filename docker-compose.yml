@@ -15,6 +15,7 @@ x-flask-base: &flask-base
     - ./databases:/databases
     - ./config.py:/site_config.py
     - ./work:/work
+    - ./scripts:/scripts
   environment:
     TIMEZONE: $TIMEZONE
 services:
