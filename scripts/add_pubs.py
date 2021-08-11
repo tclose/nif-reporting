@@ -19,12 +19,14 @@ with app.app_context():
     for researcher in Researcher.query.all():
 
         for author in researcher.scopus_authors:
-            search_str = 'au-id({}) AND pubyear = 2020'.format(author.scopus_id)
+            search_str = 'au-id({}) AND pubyear = {}'.format(author.scopus_id,
+                                                             args.year)
             author_pubs = sc.ScopusSearch(search_str).results
             if author_pubs:
                 for pub in author_pubs:
                     scopus_id = pub.eid.split('-')[-1]
-                    publication = Publication.query.filter_by(scopus_id=scopus_id).one_or_none()
+                    publication = Publication.query.filter_by(
+                        scopus_id=scopus_id).one_or_none()
                     if publication is None:
                         publication = Publication(
                             date=datetime.strptime(
@@ -47,6 +49,7 @@ with app.app_context():
                             except orm.exc.NoResultFound:
                                 pass
                             else:
-                                publication.scopus_authors.append(scopus_author)
+                                publication.scopus_authors.append(
+                                    scopus_author)
                         db.session.add(publication)
                         db.session.commit()
