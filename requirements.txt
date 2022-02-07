@@ -16,3 +16,4 @@ SQLAlchemy>=1.3.4
 tqdm>=4.47.0
 Werkzeug==0.16
 WTForms[email]>=2.2.1
+fuzzywuzzy>=0.18.0

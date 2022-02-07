@@ -12,6 +12,11 @@ parser.add_argument('--year', type=int, default=None,
                     help="The year to search for")
 args = parser.parse_args()
 
+if args.year is None:
+    year = datetime.today().year
+else:
+    year = args.year
+
 DATE_FORMAT = '%Y-%m-%d'
 
 with app.app_context():
@@ -20,7 +25,7 @@ with app.app_context():
 
         for author in researcher.scopus_authors:
             search_str = 'au-id({}) AND pubyear = {}'.format(author.scopus_id,
-                                                             args.year)
+                                                             year)
             author_pubs = sc.ScopusSearch(search_str).results
             if author_pubs:
                 for pub in author_pubs:
