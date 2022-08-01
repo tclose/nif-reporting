@@ -3,6 +3,8 @@
 Script to find Scopus records corresponding to list of authors
 """
 import os.path
+import click
+from argparse import ArgumentParser
 import pybliometrics.scopus as sc
 from sqlalchemy import orm
 from app import app, db
@@ -34,6 +36,16 @@ VALID_AREAS = [
     'NEUR',
     'BIOC',
     'PSYC']
+
+
+@click.command(help="""Add authors to database
+
+AUTHORS a list of authors to add to the database""")
+@
+parser = ArgumentParser(__doc__)
+parser.add_argument('--author', nargs=3, type=str, default=None,
+                    help="The year to search for")
+args = parser.parse_args()
 
 with app.app_context():
 
