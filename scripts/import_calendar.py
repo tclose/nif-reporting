@@ -128,6 +128,9 @@ root = tree.getroot()
 period_start = datetime.strptime(args.start_date, '%d/%m/%y').astimezone()
 period_end = datetime.strptime(args.end_date, '%d/%m/%y').astimezone()
 
+if period_end <= period_start:
+    raise Exception("Period end is not after period start")
+
 events = {}
     
 for appt in root.iter('appointment'):

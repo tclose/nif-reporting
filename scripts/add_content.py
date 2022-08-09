@@ -8,10 +8,12 @@ import json
 import logging
 import re
 import io
+from datetime import date
 from fuzzywuzzy import fuzz
 from argparse import ArgumentParser
 from urllib.parse import unquote as unquote_url
 import requests
+from sqlalchemy import sql
 from requests.exceptions import ConnectionError
 from PyPDF2 import PdfFileReader
 from bs4 import BeautifulSoup
@@ -29,6 +31,9 @@ parser = ArgumentParser(__doc__)
 parser.add_argument(
     '--new', action='store_true', default=False,
     help="Only attempt to get content for publications that are new ")
+parser.add_argument(
+    '--year', type=int, default=date.today().year,
+    help="The year to get the publication content from")
 args = parser.parse_args()
 
 DOI_RESOLVER = 'http://doi.org/'
@@ -93,9 +98,16 @@ def content_from_pii(pii):
             pass
     return text
 
+pub_query = Publication.query
+if args.new:
+    pub_query = pub_query.filter(Publication.access_status == None)
+if args.year:
+    pub_query = pub_query.filter(sql.extract('year', Publication.date) == args.year)
 
-for pub in Publication.query.all():
-    if not pub.has_content and (not args.new or pub.access_status is None):
+results = pub_query.all()
+
+for pub in results:
+    if not pub.has_content:
         if pub.pii:
             content = content_from_pii(pub.pii)
             if content is None:
