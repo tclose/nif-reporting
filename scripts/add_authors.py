@@ -2,10 +2,13 @@
 """
 Script to add authors to the database of key users (CIs) of the facility
 """
+import sys
 import os.path
+from pathlib import Path
 from argparse import ArgumentParser
 import pybliometrics.scopus as sc
 from sqlalchemy import orm
+sys.path.append(str(Path(__file__).parent.parent))
 from app import app, db
 from app.models import Researcher, ScopusAuthor, Affiliation
 

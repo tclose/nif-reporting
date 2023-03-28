@@ -7,7 +7,9 @@ import os.path
 import json
 import logging
 import re
+import sys
 import io
+from pathlib import Path
 from datetime import date
 from fuzzywuzzy import fuzz
 from argparse import ArgumentParser
@@ -18,6 +20,11 @@ from requests.exceptions import ConnectionError
 from PyPDF2 import PdfFileReader
 from bs4 import BeautifulSoup
 import pybliometrics.scopus as sc
+
+pkg_dir = str(Path(__file__).parent.parent)
+print(f"Adding {pkg_dir} to path")
+sys.path.append(pkg_dir)
+
 from app import db
 from app.models import Publication
 from app.constants import (

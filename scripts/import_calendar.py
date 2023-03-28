@@ -4,7 +4,7 @@ they can be filtered and uploaded into the NIF reporting tool.
 
 To export events make sure you are using the old version of Mac Outlook and
 go to File > Export and select "calendar" items to export. This will save a OLM
-file, which you should provide as the input to this script <not 
+file, which you should provide as the input to this script
 
 """
 import os.path
