@@ -7,7 +7,9 @@ output.txt
 databases/*
 publication-content/*
 outputs/*
+/informatics.venv
 ~*
 work/celery-beat.db
 .DS_Store
 /.vscode
+/.venv
