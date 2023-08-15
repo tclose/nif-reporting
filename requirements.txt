@@ -18,3 +18,4 @@ Werkzeug>=2.2.1
 WTForms[email]>=2.2.1
 fuzzywuzzy>=0.18.0
 click>=7.1.2
+pytz

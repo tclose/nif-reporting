@@ -6,7 +6,6 @@ for key terms
 import os.path
 import json
 import logging
-import re
 import sys
 import io
 from pathlib import Path
@@ -25,38 +24,51 @@ pkg_dir = str(Path(__file__).parent.parent)
 print(f"Adding {pkg_dir} to path")
 sys.path.append(pkg_dir)
 
-from app import db
-from app.models import Publication
-from app.constants import (
-    CANT_ACCESS_CONTENT, PLAIN_TEXT_ACCESS_CONTENT, HTML_ACCESS_CONTENT,
-    UNKNOWN_ACCESS_CONTENT)  # PDF_ACCESS_CONTENT, 
+
+from app import db, app  # noqa
+from app.models import Publication  # noqa
+from app.constants import (  # noqa
+    CANT_ACCESS_CONTENT,
+    PLAIN_TEXT_ACCESS_CONTENT,
+    HTML_ACCESS_CONTENT,
+    UNKNOWN_ACCESS_CONTENT,
+)  # PDF_ACCESS_CONTENT,
 
 
 logging.basicConfig()
 
 parser = ArgumentParser(__doc__)
 parser.add_argument(
-    '--new', action='store_true', default=False,
-    help="Only attempt to get content for publications that are new ")
+    "--new",
+    action="store_true",
+    default=False,
+    help="Only attempt to get content for publications that are new ",
+)
 parser.add_argument(
-    '--year', type=int, default=date.today().year,
-    help="The year to get the publication content from")
+    "--year",
+    type=int,
+    default=date.today().year,
+    help="The year to get the publication content from",
+)
 args = parser.parse_args()
 
-DOI_RESOLVER = 'http://doi.org/'
-SCIENCE_DIRECT = 'http://api.elsevier.com/content/article/pii/'
-CROSSREF = 'https://api.wiley.com/onlinelibrary/tdm/v1/articles/'
+DOI_RESOLVER = "http://doi.org/"
+SCIENCE_DIRECT = "http://api.elsevier.com/content/article/pii/"
+CROSSREF = "https://api.wiley.com/onlinelibrary/tdm/v1/articles/"
 
-crossref_config = os.path.join(os.environ['HOME'], '.crossref', 'config.json')
+crossref_config = os.path.join(os.environ["HOME"], ".crossref", "config.json")
 
 USER_AGENT_HEADER = {
-    'User-Agent': ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
-                   'AppleWebKit/537.36 (KHTML, like Gecko) '
-                   'Chrome/50.0.2661.102 Safari/537.36')}
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/50.0.2661.102 Safari/537.36"
+    )
+}
 
 if os.path.exists(crossref_config):
     with open(crossref_config) as f:
-        crossref_token = json.load(f)['APIToken']
+        crossref_token = json.load(f)["APIToken"]
 
 
 def content_from_doi(doi, pub):
@@ -64,13 +76,12 @@ def content_from_doi(doi, pub):
         response = requests.get(DOI_RESOLVER + doi, headers=USER_AGENT_HEADER)
     except ConnectionError:
         return None
-    html = BeautifulSoup(response.text, features='lxml')
-    redirect_tag = html.find(id='redirectURL')
+    html = BeautifulSoup(response.text, features="lxml")
+    redirect_tag = html.find(id="redirectURL")
     if redirect_tag:
-        redirect_url = unquote_url(redirect_tag.attrs['value'])
-        html = BeautifulSoup(requests.get(redirect_url).text,
-                             features='lxml')
-    if html.find('title').text.startswith('Attention Required!'):
+        redirect_url = unquote_url(redirect_tag.attrs["value"])
+        html = BeautifulSoup(requests.get(redirect_url).text, features="lxml")
+    if html.find("title").text.startswith("Attention Required!"):
         return None
     if not html.find(text=lambda s: fuzz.ratio(pub.title, s.strip()) > 60):
         #     or not html.body.find(text=re.compile('.*methods.*', flags=re.IGNORECASE))):
@@ -80,63 +91,72 @@ def content_from_doi(doi, pub):
         # return content_from_crossref(doi)
     return html
 
+
 def content_from_crossref(doi):
     response = requests.get(
         CROSSREF + doi,
-        headers={"CR-Clickthrough-Client-Token"  : crossref_token,
-                 "Accept"        : 'application/pdf'})
+        headers={
+            "CR-Clickthrough-Client-Token": crossref_token,
+            "Accept": "application/pdf",
+        },
+    )
     pdf = PdfFileReader(io.BytesIO(response.content))
-    text = ''
+    text = ""
     for page in pdf.pages:
         text += page.extractText()
     return text
 
+
 def content_from_pii(pii):
     response = requests.get(
         SCIENCE_DIRECT + pii,
-        headers={"X-ELS-APIKey"  : sc.config['Authentication']['APIKey'],
-                 "Accept"        : 'application/json'})
+        headers={
+            "X-ELS-APIKey": sc.config["Authentication"]["APIKey"],
+            "Accept": "application/json",
+        },
+    )
     text = None
     if response.ok:
         try:
-            text = response.json()[
-                'full-text-retrieval-response']['originalText']
+            text = response.json()["full-text-retrieval-response"]["originalText"]
         except KeyError:
             pass
     return text
 
-pub_query = Publication.query
-if args.new:
-    pub_query = pub_query.filter(Publication.access_status == None)
-if args.year:
-    pub_query = pub_query.filter(sql.extract('year', Publication.date) == args.year)
 
-results = pub_query.all()
+with app.app_context():
+    pub_query = Publication.query
+    if args.new:
+        pub_query = pub_query.filter(Publication.access_status == None)
+    if args.year:
+        pub_query = pub_query.filter(sql.extract("year", Publication.date) == args.year)
 
-for pub in results:
-    if not pub.has_content:
-        if pub.pii:
-            content = content_from_pii(pub.pii)
-            if content is None:
-                pub.access_status = CANT_ACCESS_CONTENT
+    results = pub_query.all()
+
+    for pub in results:
+        if not pub.has_content:
+            if pub.pii:
+                content = content_from_pii(pub.pii)
+                if content is None:
+                    pub.access_status = CANT_ACCESS_CONTENT
+                else:
+                    pub.access_status = PLAIN_TEXT_ACCESS_CONTENT
+            elif pub.doi:
+                content = content_from_doi(pub.doi, pub)
+                if content is None:
+                    pub.access_status = CANT_ACCESS_CONTENT
+                else:
+                    pub.access_status = HTML_ACCESS_CONTENT
             else:
-                pub.access_status = PLAIN_TEXT_ACCESS_CONTENT
-        elif pub.doi:
-            content = content_from_doi(pub.doi, pub)
-            if content is None:
-                pub.access_status = CANT_ACCESS_CONTENT
-            else:
-                pub.access_status = HTML_ACCESS_CONTENT
-        else:
-            pub.access_status = UNKNOWN_ACCESS_CONTENT
+                pub.access_status = UNKNOWN_ACCESS_CONTENT
 
-        # if content:
+            # if content:
             # pub.content = content
-        db.session.commit()
-        if pub.access_status in (1, 2):
-            status = "Successfully"
-        elif pub.access_status == 0:
-            status = "Unsuccessfully"
-        elif pub.access_status == -1:
-            status = "No method for"
-        logging.info(f"{status} accessed content for {pub.id} ({pub.scopus_id}")
+            db.session.commit()
+            if pub.access_status in (1, 2):
+                status = "Successfully"
+            elif pub.access_status == 0:
+                status = "Unsuccessfully"
+            elif pub.access_status == -1:
+                status = "No method for"
+            logging.info(f"{status} accessed content for {pub.id} ({pub.scopus_id}")

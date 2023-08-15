@@ -12,4 +12,4 @@ outputs/*
 work/celery-beat.db
 .DS_Store
 /.vscode
-/.venv
+*.venv

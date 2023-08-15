@@ -74,11 +74,11 @@ with app.app_context(), open(args.output_csv, 'w') as csv_f:
             'Subject or Title': pub.title,
             'Output Date': pub.date.strftime('%d/%m/%Y'),
             'DOI or Link': 'http://dx.doi.org/' + pub.doi,
-            'Publication': pub.pub_name,
+            # 'Publication': pub.pub_name,
             'Fellow Named Author': 'FALSE',
             'Origin': 'Research Community',
             'Output Type': 'Publication',
-            'Node Contact': 'Prof. Fernando Calamante',
+            'Node Contact': 'Prof Fernando Calamante',
             'Is NIF Acknowledged?': 'No',
             'If not, why': 'Offsite instrument',
             'Has Associated Project': 'No'}
