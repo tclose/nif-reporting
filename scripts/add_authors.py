@@ -14,25 +14,28 @@ from app import app, db
 from app.models import Researcher, ScopusAuthor, Affiliation
 
 
-# AUTHORS = [
-#     ('Glenda', 'Halliday', None),
-#     ('Olivier', 'Piguet', None),
-#     ('Paul', 'Haber', None),
-#     ('Ron', 'Grunstein', None),
-#     ('Matthew', 'Kiernan', None),
-#     ('Luke', 'Henderson', 'L.A.'),
-#     ('Sharon', 'Naismith', None),
-#     ('Daniel', 'Roquet', None),
-#     ('Adam', 'Guastella', None),
-#     ('Joel', 'Pearson', None),
-#     ('Shantel', 'Duffy', None),
-#     ('Mark', 'Onslow', None),
-#     ('Amanda', 'Salis', None),
-#     ('Michael', 'Barnett', None),
-#     ('Simon', 'Lewis', 'S.J.G.')]
+AUTHORS = [
+    ('Glenda', 'Halliday', None),
+    ('Olivier', 'Piguet', None),
+    ('Paul', 'Haber', None),
+    ('Ron', 'Grunstein', None),
+    ('Matthew', 'Kiernan', None),
+    ('Luke', 'Henderson', 'L.A.'),
+    ('Sharon', 'Naismith', None),
+    ('Daniel', 'Roquet', None),
+    ('Adam', 'Guastella', None),
+    ('Joel', 'Pearson', None),
+    ('Shantel', 'Duffy', None),
+    ('Mark', 'Onslow', None),
+    ('Amanda', 'Salis', None),
+    ('Michael', 'Barnett', None),
+    ('Simon', 'Lewis', 'S.J.G.'),
+    ('Ramon', 'Landin-Romero', None)
+]     
 
-# AUTHORS = [
-#     ('Ramon', 'Landin-Romero', None)]
+AUTHORS = [
+    ('Glenda', 'Halliday', None),
+]
 
 VALID_AREAS = ["MEDI", "NEUR", "BIOC", "PSYC", "ENGI", "MATE", "PHYS"]
 
